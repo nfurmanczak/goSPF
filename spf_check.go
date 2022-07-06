@@ -8,11 +8,23 @@ import (
 	"strings"
 )
 
+func findIP4Addresses(spfRecord string) {
+	var IPv4Addresses []string
+
+	var validIPv4Addresses = regexp.MustCompile(`ip4:([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]+)`)
+
+	IPv4Addresses = validIPv4Addresses.FindAllString(spfRecord, -1)
+
+	fmt.Println(IPv4Addresses)
+
+}
+
 func findAllIncludes(includes *[]string) {
 	// This function finds all possible includes for the SPF record. A include from a SPF record can also contain one or more other includes.
 	// It makes only sense to execute this function, if the var spfRecord contains minimum one include.
 	// The SPF RFC limits the number to maximum 10 includes (include_counter). This function will print a warning message if it will find more then
 	// 10 includes and exit the program at 15 includes. The number 15 has no particular meaning and is only used to avoid infinity loops.
+	//
 
 	var include_counter int = 0 // count how many includes are found
 	var tmp_spfRecord string
@@ -20,11 +32,11 @@ func findAllIncludes(includes *[]string) {
 	var new_includes []string
 	var trans_includes []string
 
-	// The var includes shoud contain all found includes when this function was executed. We need to copy all elements from
+	// The var includes should contain all found includes when this function was executed. We need to copy all elements from
 	// includes to an other slice because we need to flush the var tmp_include
 	tmp_includes = *includes
 
-	// Endlos loop which will only be exit when no more includes are found.
+	// Infinity loop which will only be exit when no more includes are found.
 	for true {
 
 		// Loop all elements in tmp_includes ...
@@ -64,18 +76,20 @@ func findAllIncludes(includes *[]string) {
 				for _, x := range new_includes {
 					*includes = append(*includes, x)
 					trans_includes = append(trans_includes, x)
+
 				}
 
 				new_includes = nil
-
-			} else {
-				break
+				txtrecords = nil
 			}
 		}
+		//
+		// END LOOP
+		//
 
 		if len(trans_includes) != 0 {
 
-			// Remove all elemente in tmp_includes and prepare this slice for the next for loop run
+			// Remove all elements in tmp_includes and prepare this slice for the next for loop run
 			tmp_includes = nil
 
 			// Copy all new found include domains into the
@@ -88,11 +102,6 @@ func findAllIncludes(includes *[]string) {
 			break
 		}
 	}
-
-	//fmt.Println("Gefundene Includes:")
-	//for _, x := range *includes {
-	//	fmt.Println("-", x)
-	//}
 
 }
 
@@ -159,6 +168,16 @@ func findSingleIP4Networks(record string) (ipv4Networks []string) {
 	ipv4Networks = validIPv4Network.FindAllString(record, -1)
 
 	return
+}
+
+func finxMXMechanism(spfRecord []string) {
+	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
+	// var MXwithDomainRegex = regexp.MustCompile(`mx:\S+`)
+	// var MXwithoutDomainRegex = regexp.MustCompile(`mx\s`)
+
+	for _, x := range spfRecord {
+		fmt.Println(x)
+	}
 }
 
 func checkForValidDomain(domain string) (DomainCheck bool) {
@@ -239,13 +258,33 @@ func main() {
 	var includes = []string{}
 	includes = findIncludeInSPFRecord(spfRecord)
 
-	// If
+	// We need to collect all SPF records in one string slice. This slice need to contains the SPF record
+	// form the var spfRecord and from all SPF Records from the include slice
+	var spfRecords []string
+
+	fmt.Println(len(includes))
+
 	if len(includes) != 0 {
 		findAllIncludes(&includes)
 
 		for _, x := range includes {
-			fmt.Println("-", x)
+			txtrecords, dns_error := net.LookupTXT(x)
+			if dns_error != nil {
+				fmt.Println("Warning: No TXT Record found for Inclue Domain", x)
+			}
+
+			spfRecords = append(spfRecords, findSPFRecord(txtrecords))
 		}
+	} else {
+		spfRecords = append(spfRecords, spfRecord)
+	}
+
+	for _, x := range includes {
+		fmt.Println("=> include:", x)
+	}
+
+	for _, x := range spfRecords {
+		fmt.Println(x)
 	}
 
 }
