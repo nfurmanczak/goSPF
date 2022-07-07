@@ -8,103 +8,6 @@ import (
 	"strings"
 )
 
-func findIP4Addresses(spfRecord string) {
-	var IPv4Addresses []string
-
-	var validIPv4Addresses = regexp.MustCompile(`ip4:([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]+)`)
-
-	IPv4Addresses = validIPv4Addresses.FindAllString(spfRecord, -1)
-
-	fmt.Println(IPv4Addresses)
-
-}
-
-func findAllIncludes(includes *[]string) {
-	// This function finds all possible includes for the SPF record. A include from a SPF record can also contain one or more other includes.
-	// It makes only sense to execute this function, if the var spfRecord contains minimum one include.
-	// The SPF RFC limits the number to maximum 10 includes (include_counter). This function will print a warning message if it will find more then
-	// 10 includes and exit the program at 15 includes. The number 15 has no particular meaning and is only used to avoid infinity loops.
-	//
-
-	var include_counter int = 0 // count how many includes are found
-	var tmp_spfRecord string
-	var tmp_includes []string // A copy from includes
-	var new_includes []string
-	var trans_includes []string
-
-	// The var includes should contain all found includes when this function was executed. We need to copy all elements from
-	// includes to an other slice because we need to flush the var tmp_include
-	tmp_includes = *includes
-
-	// Infinity loop which will only be exit when no more includes are found.
-	for true {
-
-		// Loop all elements in tmp_includes ...
-		for _, x := range tmp_includes {
-
-			// Get all TXT records from include domain
-			txtrecords, dns_error := net.LookupTXT(x)
-
-			// Print a warning when we can not get the TXT record(s) from the domain in the var x
-			// This can have different reasons: DNS timeout, no TXT record available, etc. ...
-			// It is better to print a warning, skip all other steps and continue with the next domain in tmp_includes
-			if dns_error != nil {
-				fmt.Println("Warning: Can not get TXT-Record from Domain:", x, "for include search.")
-				continue
-			}
-
-			// txtrecords can contain multiple TXT record. We need to find a valid SPF record
-			tmp_spfRecord = findSPFRecord(txtrecords)
-			new_includes = findIncludeInSPFRecord(tmp_spfRecord)
-
-			// Check if tmp_spfRecord (new_incudes) contains also more include tags ...
-			if new_includes != nil {
-
-				include_counter += 1
-
-				// Print a warning if we found more then 10 nested includes. IP and domains in this SPF records will be ignored
-				if include_counter >= 10 {
-					fmt.Println("Warning: More than 10 nested includes detected.")
-
-					// It is possible to get stuck in a endles loop when includes refer to each other. We need to exit the program at in this case
-				} else if include_counter >= 15 {
-					fmt.Println("Error: Possible loop with include domains.")
-					os.Exit(2)
-				}
-
-				// Add all new found domains from include mechanism to the slie
-				for _, x := range new_includes {
-					*includes = append(*includes, x)
-					trans_includes = append(trans_includes, x)
-
-				}
-
-				new_includes = nil
-				txtrecords = nil
-			}
-		}
-		//
-		// END LOOP
-		//
-
-		if len(trans_includes) != 0 {
-
-			// Remove all elements in tmp_includes and prepare this slice for the next for loop run
-			tmp_includes = nil
-
-			// Copy all new found include domains into the
-			for _, x := range trans_includes {
-				tmp_includes = append(tmp_includes, x)
-			}
-			trans_includes = nil
-		} else {
-			// No more include domains found, we need to exit this for loop
-			break
-		}
-	}
-
-}
-
 func findSPFRecord(txtrecords []string) (foundSPFrecord string) {
 
 	var spfCounter int = 0
@@ -122,99 +25,6 @@ func findSPFRecord(txtrecords []string) (foundSPFrecord string) {
 	}
 
 	return foundSPFrecord
-}
-
-func findIncludeInSPFRecord(spfRecord string) (foundInclude []string) {
-
-	foundInclude = []string{}
-
-	if strings.Contains(spfRecord, "include:") {
-		includeRegex := regexp.MustCompile(`include:(\S+)`)
-		for _, x := range includeRegex.FindAllString(spfRecord, -1) {
-			foundInclude = append(foundInclude, strings.Replace(x, "include:", "", 1))
-		}
-	} else {
-		foundInclude = nil
-	}
-
-	return
-}
-
-func findRedirect(spfRecord string) (redirectSPF string) {
-	var redirect string
-
-	if strings.Contains(spfRecord, "redirect=") {
-		redirectRegex := regexp.MustCompile(`redirect=\S+`)
-		redirect = redirectRegex.FindAllString(spfRecord, 1)[0]
-		redirect = strings.Replace(redirect, "redirect=", "", 1)
-		foundtxtrecord, dns_error := net.LookupTXT(redirect)
-		redirectSPF = findSPFRecord(foundtxtrecord)
-
-		if dns_error != nil {
-			fmt.Println("Error: No TXT DNS-Reord found")
-			os.Exit(3)
-		}
-
-	} else {
-		redirectSPF = spfRecord
-	}
-
-	return
-}
-
-func findSingleIP4Networks(record string) (ipv4Networks []string) {
-	var validIPv4Network = regexp.MustCompile(`ip4:([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]+)`)
-
-	ipv4Networks = validIPv4Network.FindAllString(record, -1)
-
-	return
-}
-
-func finxMXMechanism(spfRecord []string) {
-	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
-	// var MXwithDomainRegex = regexp.MustCompile(`mx:\S+`)
-	// var MXwithoutDomainRegex = regexp.MustCompile(`mx\s`)
-
-	for _, x := range spfRecord {
-		fmt.Println(x)
-	}
-}
-
-func checkForValidDomain(domain string) (DomainCheck bool) {
-	var DomainRegex = regexp.MustCompile(`^[a-zA-Z0-9\.-]+\.[a-zA-Z]{2,}$`)
-
-	if DomainRegex.MatchString(domain) {
-		DomainCheck = true
-	} else {
-		DomainCheck = false
-	}
-
-	return
-}
-
-func findAllMechanism(spfRecord string) {
-	var allRegex = regexp.MustCompile(`[-?+~]{1}all$`)
-	var all = allRegex.FindString(spfRecord)
-
-	if all != "" {
-		if all == "-all" {
-			fmt.Println("Hardfail found (-all)")
-		} else if all == "~all" {
-			fmt.Println("Softfail found (~all)")
-		} else if all == "?all" {
-			fmt.Println("Neutral found (?all)")
-		} else if all == "+all" {
-			fmt.Println("Error: +all is invalid.")
-			os.Exit(2)
-		} else {
-			fmt.Println("Error: all found but is invalid.")
-			os.Exit(2)
-		}
-	} else {
-		fmt.Println("Error: Invalid SPF RR. No all mechanism found.")
-		os.Exit(2)
-	}
-
 }
 
 func main() {
@@ -237,7 +47,7 @@ func main() {
 	txtrecords, dns_error := net.LookupTXT(domain)
 
 	if dns_error != nil {
-		fmt.Println("Error: No TXT DNS-Reord found")
+		fmt.Println("Error: No TXT DNS-Record found")
 		os.Exit(3)
 	}
 
@@ -251,7 +61,7 @@ func main() {
 	}
 
 	spfRecord = findRedirect(spfRecord)
-	findAllMechanism(spfRecord)
+	findAllQualifier(spfRecord)
 
 	findIncludeInSPFRecord(spfRecord)
 
