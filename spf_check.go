@@ -7,23 +7,29 @@ import (
 	"strings"
 )
 
-
 func main() {
 
 	var domain string
 
+	// Check if the user started the application with a 
 	if len(os.Args) > 1 {
 		domain = strings.ToLower(os.Args[1])
+		
+		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain 
+		// This is done via a simple RegEx which expects a dot and then a TLD. This method will not detect all invalid domains. 
+		if checkForValidDomain(domain) == false {
+			fmt.Println("Error:", domain, "is not a valid domain.")
+			os.Exit(3)
+		}
+		
 	} else {
+		// Exit the application with exit code 2 when a domain as transfer parameter is missing 
 		fmt.Println("Error: Domain missing.")
 		fmt.Println("Usage: ./spf_check example-domain.org")
 		os.Exit(2)
 	}
 
-	if checkForValidDomain(domain) == false {
-		fmt.Println("Error:", domain, "is not a valid domain.")
-		os.Exit(3)
-	}
+
 
 	txtrecords, dns_error := net.LookupTXT(domain)
 

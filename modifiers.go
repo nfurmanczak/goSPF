@@ -27,7 +27,7 @@ import (
 )
 
 /* 
-	findRediretct expects a valid string with a SPF record. Return value is a new string with a valid SPF record if we have find a redirect or the 
+	findRedirect expects a valid string with a SPF record. Return value is a new string with a valid SPF record if we have find a redirect or the 
 */ 
 
 func findRedirect(spfRecord string) (redirectSPF string) {
