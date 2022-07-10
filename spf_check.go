@@ -10,6 +10,8 @@ import (
 func main() {
 
 	var domain string
+	//spf = domain,spfRecord
+	spfMap := make(map[string]string)
 
 	// Check if the user started the application with a
 	if len(os.Args) > 1 {
@@ -36,11 +38,13 @@ func main() {
 		os.Exit(3)
 	}
 
-	var spfRecord string = findSPFRecord(txtrecords)
+	// var spfRecord string = findSPFRecord(txtrecords)
 
-	fmt.Println(spfRecord)
+	spfMap[domain] = findSPFRecord(txtrecords)
 
-	if spfRecord == "null" {
+	fmt.Println(spfMap)
+
+	if len(spfMap) == 0 {
 		fmt.Println("Error: No SPF record found for Domain: ", domain)
 		os.Exit(2)
 	}
