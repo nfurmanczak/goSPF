@@ -11,25 +11,23 @@ func main() {
 
 	var domain string
 
-	// Check if the user started the application with a 
+	// Check if the user started the application with a
 	if len(os.Args) > 1 {
 		domain = strings.ToLower(os.Args[1])
-		
-		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain 
-		// This is done via a simple RegEx which expects a dot and then a TLD. This method will not detect all invalid domains. 
+
+		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain
+		// This is done via a simple RegEx which expects a dot and then a TLD. This method will not detect all invalid domains.
 		if checkForValidDomain(domain) == false {
 			fmt.Println("Error:", domain, "is not a valid domain.")
 			os.Exit(3)
 		}
-		
+
 	} else {
-		// Exit the application with exit code 2 when a domain as transfer parameter is missing 
+		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
 		fmt.Println("Usage: ./spf_check example-domain.org")
 		os.Exit(2)
 	}
-
-
 
 	txtrecords, dns_error := net.LookupTXT(domain)
 
@@ -76,12 +74,19 @@ func main() {
 		spfRecords = append(spfRecords, spfRecord)
 	}
 
-	for _, x := range includes {
-		fmt.Println("=> include:", x)
+	tstList := findIP4(spfRecords)
+
+	ip4addr := findIPv4Addresses(tstList)
+	ip4nets := findIPv4Networks(tstList)
+
+	fmt.Println("IP4 Adresses: ")
+	for _, x := range ip4addr {
+		fmt.Println("=>", x)
 	}
 
-	for _, x := range spfRecords {
-		fmt.Println(x)
+	fmt.Println("IP4 CIDS: ")
+	for _, x := range ip4nets {
+		fmt.Println("=>", x)
 	}
 
 }

@@ -1,34 +1,57 @@
- package main
+package main
 
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
-func finxMXMechanism(spfRecord []string) {
+func finxMXMechanism(spfRecords []string) {
 	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
 	// var MXwithDomainRegex = regexp.MustCompile(`mx:\S+`)
 	// var MXwithoutDomainRegex = regexp.MustCompile(`mx\s`)
 
-	for _, x := range spfRecord {
+	for _, x := range spfRecords {
 		fmt.Println(x)
 	}
 }
 
-func findSingleIP4Networks(record string) (ipv4Networks []string) {
-	var validIPv4Network = regexp.MustCompile(`ip4:([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]+)`)
+func findIP6(spfRecord []string) (ip6list []string) {
+	// DUMMY FUNCTION
+	return
+}
 
-	ipv4Networks = validIPv4Network.FindAllString(record, -1)
+func findIP4(spfRecords []string) (ip4list []string) {
+
+	ip4Regex := regexp.MustCompile(`ip4:\S+`)
+
+	for _, spfRecord := range spfRecords {
+		for _, x := range ip4Regex.FindAllString(spfRecord, -1) {
+			ip4list = append(ip4list, strings.Replace(x, "ip4:", "", 1))
+		}
+	}
 
 	return
 }
 
-func findIP4Addresses(spfRecord string) {
-	var IPv4Addresses []string
+func findIPv4Networks(ip4list []string) (ip4networks []string) {
 
-	var validIPv4Addresses = regexp.MustCompile(`ip4:([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]+)`)
+	for _, line := range ip4list {
+		if strings.Contains(line, "/") {
+			ip4networks = append(ip4networks, line)
+		}
+	}
 
-	IPv4Addresses = validIPv4Addresses.FindAllString(spfRecord, -1)
+	return
+}
 
-	fmt.Println(IPv4Addresses)
+func findIPv4Addresses(ip4list []string) (ip4addresses []string) {
+
+	for _, line := range ip4list {
+		if !strings.Contains(line, "/") {
+			ip4addresses = append(ip4addresses, line)
+		}
+	}
+
+	return
 }
