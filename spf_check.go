@@ -10,7 +10,8 @@ import (
 func main() {
 
 	var domain string
-	//spf = domain,spfRecord
+	
+	// This map contains the domain as key and SPF record as value 
 	spfMap := make(map[string]string)
 
 	// Check if the user started the application with a
@@ -23,7 +24,7 @@ func main() {
 			fmt.Println("Error:", domain, "is not a valid domain.")
 			os.Exit(3)
 		}
-
+		
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
@@ -31,28 +32,27 @@ func main() {
 		os.Exit(2)
 	}
 
+	// Get TXT records from the domain via DNS lookup ... 
 	txtrecords, dns_error := net.LookupTXT(domain)
 
+	// ... exit application with exit code 3 when the DNS lookup is not possible (e.g. timeout, .. ) 
 	if dns_error != nil {
 		fmt.Println("Error: No TXT DNS-Record found")
 		os.Exit(3)
 	}
 
-	// var spfRecord string = findSPFRecord(txtrecords)
+    // The slice txtrecords can contain multiple txt records. The function will search for SPF records and return the 
+	// found records as a string. The function will exit the application with error code 3 if zero or more then one SPF record is found
+	
+	var spfRecord string = findSPFRecord(txtrecords)
 
 	spfMap[domain] = findSPFRecord(txtrecords)
 
 	fmt.Println(spfMap)
 
-	if len(spfMap) == 0 {
-		fmt.Println("Error: No SPF record found for Domain: ", domain)
-		os.Exit(2)
-	}
-
 	spfRecord = findRedirect(spfRecord)
+	
 	findAllQualifier(spfRecord)
-
-	findIncludeInSPFRecord(spfRecord)
 
 	var includes = []string{}
 	includes = findIncludeInSPFRecord(spfRecord)
