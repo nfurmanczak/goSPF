@@ -23,7 +23,7 @@ func findIP6(spfRecord []string) (ip6list []string) {
 	return
 }
 
-func findIP4(spfRecords []string) (ip4list []string) {
+func findIP4(spfRecords map[string](string)) (ip4list []string) {
 
 	ip4Regex := regexp.MustCompile(`ip4:\S+`)
 
