@@ -19,6 +19,13 @@ func main() {
 	if len(os.Args) > 1 {
 		domain = strings.ToLower(os.Args[1])
 
+		for _,arg := range os.Args { 
+			if strings.ToLower(arg) == "help" { 
+				help()
+				os.Exit(1)
+			}
+		}
+
 		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain
 		// This is done via a simple RegEx which expects a dot and then a TLD. This method will not detect all invalid domains.
 		if checkForValidDomain(domain) == false {
@@ -26,10 +33,15 @@ func main() {
 			os.Exit(3)
 		}
 
+		fmt.Println("Transfer Parameter:",len(os.Args))
+		
+
+
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
-		fmt.Println("Usage: ./spf_check example-domain.org [-ip4 1.2.3.4]")
+		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] ")
+		fmt.Println("")
 		os.Exit(2)
 	}
 
