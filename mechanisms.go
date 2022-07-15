@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"regexp"
 	"strings"
 )
 
-func finxMX(spfRecords []string) {
+func findARecord(spfRecords map[string](string)) {
 	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
-	// var MXwithDomainRegex = regexp.MustCompile(`mx:\S+`)
-	// var MXwithoutDomainRegex = regexp.MustCompile(`mx\s`)
+	var ARecordWithDomainRegex = regexp.MustCompile(`a:\S+`)
+	//var ARecordWithoutDomainRegex = regexp.MustCompile(`mx\s`)
 
 	//mxWithoutDomain := regexp.MustCompile(`ip4:\S+`)
 	//mxWithDomain := regexp.MustCompile(`ip4:\S+`)
@@ -16,6 +18,26 @@ func finxMX(spfRecords []string) {
 	// Find mx record for the own domain
 
 	// Finx mx records that are refereding to a other domain
+
+	aMap := make(map[string](string))
+
+	for _, spfrr := range spfRecords {
+		for _, x := range ARecordWithDomainRegex.FindAllString(spfrr, -1) {
+			domain := strings.Replace(x, "a:", "", 1)
+			records, dns_error := net.LookupIP(domain)
+
+			if dns_error == nil {
+				for _, ip := range records {
+					aMap[domain] = ip.String()
+				}
+			}
+		}
+	}
+
+	for domain, ip := range aMap {
+		fmt.Println(domain, " ", ip)
+	}
+
 }
 
 func findIP6(spfRecord []string) (ip6list []string) {

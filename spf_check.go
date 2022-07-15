@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"net"
-	"net/netip"
 	"os"
 	"strings"
 )
+
+//"net/netip"
 
 func main() {
 
@@ -19,10 +20,15 @@ func main() {
 	if len(os.Args) > 1 {
 		domain = strings.ToLower(os.Args[1])
 
-		for _,arg := range os.Args { 
-			if strings.ToLower(arg) == "help" { 
+		for _, arg := range os.Args {
+			if strings.ToLower(arg) == "help" {
 				help()
-				os.Exit(1)
+				os.Exit(0)
+			}
+
+			if strings.ToLower(arg) == "version" {
+				version()
+				os.Exit(0)
 			}
 		}
 
@@ -32,15 +38,10 @@ func main() {
 			fmt.Println("Error:", domain, "is not a valid domain.")
 			os.Exit(3)
 		}
-
-		fmt.Println("Transfer Parameter:",len(os.Args))
-		
-
-
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
-		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] ")
+		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] [version]")
 		fmt.Println("")
 		os.Exit(2)
 	}
@@ -72,8 +73,6 @@ func main() {
 	// form the var spfRecord and from all SPF Records from the include slice
 	var spfRecords []string
 
-	fmt.Println(len(includes))
-
 	if len(includes) != 0 {
 		findAllIncludes(&includes)
 
@@ -91,30 +90,23 @@ func main() {
 		spfMap[domain] = spfRecord
 	}
 
-	ipv4slice := findIP4(spfMap)
+	//ipv4slice := findIP4(spfMap)
 
-	ip4addr := findIPv4Addresses(ipv4slice)
-	ip4nets := findIPv4Networks(ipv4slice)
+	//ip4addr := findIPv4Addresses(ipv4slice)
+	//ip4nets := findIPv4Networks(ipv4slice)
 
-	fmt.Println("IPv4 Adresses: ")
-	for _, x := range ip4addr {
-		fmt.Println("=>", x)
-	}
+	//exampleIP, _ := netip.ParseAddr("52.82.175.255")
 
-	fmt.Println("IPv4 CIDS: ")
-	for _, x := range ip4nets {
-		fmt.Println("=>", x)
-	}
+	/*
+		fmt.Println("Check if IP is in CIDR Network")
+		for _, x := range ip4nets {
+			network, _ := netip.ParsePrefix(x)
 
-	exampleIP, _ := netip.ParseAddr("52.82.175.255")
-
-	fmt.Println("Check if IP is in CIDR Network")
-	for _, x := range ip4nets {
-		network, _ := netip.ParsePrefix(x)
-
-		if network.Contains(exampleIP) {
-			fmt.Println(exampleIP, "is part from the network", x)
+			if network.Contains(exampleIP) {
+				fmt.Println(exampleIP, "is part from the network", x)
+			}
 		}
-	}
+	*/
 
+	findARecord(spfMap)
 }
