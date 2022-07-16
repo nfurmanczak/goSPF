@@ -64,6 +64,8 @@ func main() {
 	// A SPF record can contain a redirect which points to an SPF record from a different domain
 	spfRecord = findRedirect(spfRecord)
 
+	fmt.Println("SPF after redirect:", spfRecord)
+
 	findAllQualifier(spfRecord)
 
 	var includes = []string{}
@@ -108,5 +110,9 @@ func main() {
 		}
 	*/
 
+	fmt.Println("A Includes:")
 	findARecord(spfMap)
+
+	fmt.Println("MX Includes:")
+	findMXRecord(spfMap)
 }
