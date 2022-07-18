@@ -7,46 +7,54 @@ import (
 	"strings"
 )
 
+func validateIPv4Addr(input string) (returnValue bool){ 
+	var ipv4Regex = regexp.MustCompile(`^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`)
+	
+	if ipv4Regex.MatchString(input) {
+		returnValue = true
+	} else {
+		returnValue = false
+	}
+
+	return	
+}
+
 func findMXRecord(spfRecords map[string](string)) {
 	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
-
 	var MXRecordWithDomainRegex = regexp.MustCompile(`mx:\S+`)
 	var MXRecordWithoutDomainRegex = regexp.MustCompile(`mx\s`)
 
 	// Map is not a good data struct. I need to change this
-	mxMap := make(map[string](string))
+	mxMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
 
 		for _, x := range MXRecordWithDomainRegex.FindAllString(spfrr, -1) {
 			MXRecordDomain := strings.Replace(x, "mx:", "", 1)
 			records, dns_error := net.LookupMX(MXRecordDomain)
-			fmt.Println(records)
 
 			if dns_error == nil {
 				for _, ip := range records {
-					fmt.Println(ip.Host)
-					mxMap[MXRecordDomain] = ip.Host
+					fmt.Println(net.LookupIP(ip.Host))
+					mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain],ip.Host)
 				}
 			}
 		}
 
 		for range MXRecordWithoutDomainRegex.FindAllString(spfrr, -1) {
-
 			records, dns_error := net.LookupMX(domain)
-			fmt.Println(records)
 
 			if dns_error == nil {
-
 				for _, ip := range records {
-					fmt.Println(ip.Host)
-					mxMap[domain] = ip.Host
+					
+					fmt.Println(net.LookupIP(ip.Host))
+					mxMap[domain] = append(mxMap[domain],ip.Host)
 				}
-			}
+			} 
 		}
-
+		
 	}
-
+	
 	for domain, ip := range mxMap {
 		fmt.Println(domain, " ", ip)
 	}
@@ -54,14 +62,10 @@ func findMXRecord(spfRecords map[string](string)) {
 }
 
 func findARecord(spfRecords map[string](string)) {
-	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
 	var ARecordWithDomainRegex = regexp.MustCompile(`a:\S+`)
 	var ARecordWithoutDomainRegex = regexp.MustCompile(`a\s`)
 
-	//mxWithoutDomain := regexp.MustCompile(`ip4:\S+`)
-	//mxWithDomain := regexp.MustCompile(`ip4:\S+`)
-
-	aMap := make(map[string](string))
+	aMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
 
@@ -71,7 +75,9 @@ func findARecord(spfRecords map[string](string)) {
 
 			if dns_error == nil {
 				for _, ip := range records {
-					aMap[ARecordDomain] = ip.String()
+					if validateIPv4Addr(ip.String()) { 
+						aMap[ARecordDomain] = append(aMap[ARecordDomain], ip.String()) 
+					}
 				}
 			}
 		}
@@ -82,7 +88,9 @@ func findARecord(spfRecords map[string](string)) {
 
 			if dns_error == nil {
 				for _, ip := range records {
-					aMap[domain] = ip.String()
+					if validateIPv4Addr(ip.String()) { 
+						aMap[domain] = append(aMap[domain], ip.String()) 
+					}
 				}
 			}
 		}

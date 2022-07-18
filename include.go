@@ -67,11 +67,11 @@ func findAllIncludes(includes *[]string) {
 
 				include_counter += 1
 
-				// Print a warning if we found more then 10 nested includes. IP and domains in this SPF records will be ignored
+				// Print a warning if we found more than 10 nested includes. IP and domains in this SPF records will be ignored
 				if include_counter >= 10 {
 					fmt.Println("Warning: More than 10 nested includes detected.")
 
-					// It is possible to get stuck in a endles loop when includes refer to each other. We need to exit the program at in this case
+					// It is possible to get stuck in an endless loop when includes refer to each other. We need to exit the program at in this case
 				} else if include_counter >= 15 {
 					fmt.Println("Error: Possible loop with include domains.")
 					os.Exit(2)
@@ -152,11 +152,11 @@ func findAllIncludesWithMaps(includes *[]string) {
 
 				include_counter += 1
 
-				// Print a warning if we found more then 10 nested includes. IP and domains in this SPF records will be ignored
+				// Print a warning if we found more than 10 nested includes. IP and domains in this SPF records will be ignored
 				if include_counter >= 10 {
 					fmt.Println("Warning: More than 10 nested includes detected.")
 
-					// It is possible to get stuck in a endles loop when includes refer to each other. We need to exit the program at in this case
+					// It is possible to get stuck in a endless loop when includes refer to each other. We need to exit the program at in this case
 				} else if include_counter >= 15 {
 					fmt.Println("Error: Possible loop with include domains.")
 					os.Exit(2)
@@ -166,7 +166,6 @@ func findAllIncludesWithMaps(includes *[]string) {
 				for _, x := range new_includes {
 					*includes = append(*includes, x)
 					trans_includes = append(trans_includes, x)
-
 				}
 
 				new_includes = nil
