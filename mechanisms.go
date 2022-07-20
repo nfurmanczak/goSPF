@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-func validateIPv4Addr(input string) (returnValue bool){ 
+func validateIPv4Addr(input string) (returnValue bool) {
 	var ipv4Regex = regexp.MustCompile(`^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`)
-	
+
 	if ipv4Regex.MatchString(input) {
 		returnValue = true
 	} else {
 		returnValue = false
 	}
 
-	return	
+	return
 }
 
 func findMXRecord(spfRecords map[string](string)) {
@@ -24,7 +24,6 @@ func findMXRecord(spfRecords map[string](string)) {
 	var MXRecordWithDomainRegex = regexp.MustCompile(`mx:\S+`)
 	var MXRecordWithoutDomainRegex = regexp.MustCompile(`mx\s`)
 
-	// Map is not a good data struct. I need to change this
 	mxMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
@@ -36,7 +35,7 @@ func findMXRecord(spfRecords map[string](string)) {
 			if dns_error == nil {
 				for _, ip := range records {
 					fmt.Println(net.LookupIP(ip.Host))
-					mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain],ip.Host)
+					mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain], ip.Host)
 				}
 			}
 		}
@@ -45,18 +44,23 @@ func findMXRecord(spfRecords map[string](string)) {
 			records, dns_error := net.LookupMX(domain)
 
 			if dns_error == nil {
-				for _, ip := range records {
-					
-					fmt.Println(net.LookupIP(ip.Host))
-					mxMap[domain] = append(mxMap[domain],ip.Host)
+				for _, ips := range records {
+					for _, ip := range ips.Host {
+						fmt.Println(ip)
+						mxMap[domain] = append(mxMap[domain], string(ip))
+					}
+					//fmt.Println(net.LookupIP(ip.Host))
+					//mxMap[domain] = append(mxMap[domain], ip.Host)
 				}
-			} 
+			}
 		}
-		
+
 	}
-	
+
+	fmt.Println("TEST!!!!!!!!!!!!!!!")
 	for domain, ip := range mxMap {
-		fmt.Println(domain, " ", ip)
+		fmt.Println("Domain:", domain)
+		fmt.Println("IP:", ip)
 	}
 
 }
@@ -75,22 +79,17 @@ func findARecord(spfRecords map[string](string)) {
 
 			if dns_error == nil {
 				for _, ip := range records {
-					if validateIPv4Addr(ip.String()) { 
-						aMap[ARecordDomain] = append(aMap[ARecordDomain], ip.String()) 
-					}
+					aMap[ARecordDomain] = append(aMap[ARecordDomain], ip.String())
 				}
 			}
 		}
 
 		for range ARecordWithoutDomainRegex.FindAllString(spfrr, -1) {
-
 			records, dns_error := net.LookupIP(domain)
 
 			if dns_error == nil {
 				for _, ip := range records {
-					if validateIPv4Addr(ip.String()) { 
-						aMap[domain] = append(aMap[domain], ip.String()) 
-					}
+					aMap[domain] = append(aMap[domain], ip.String())
 				}
 			}
 		}
