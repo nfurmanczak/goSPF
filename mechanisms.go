@@ -27,15 +27,19 @@ func findMXRecord(spfRecords map[string](string)) {
 	mxMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
-
-		for _, x := range MXRecordWithDomainRegex.FindAllString(spfrr, -1) {
-			MXRecordDomain := strings.Replace(x, "mx:", "", 1)
+		for _, mxTag := range MXRecordWithDomainRegex.FindAllString(spfrr, -1) {
+			MXRecordDomain := strings.Replace(mxTag, "mx:", "", 1)
 			records, dns_error := net.LookupMX(MXRecordDomain)
 
 			if dns_error == nil {
-				for _, ip := range records {
-					fmt.Println(net.LookupIP(ip.Host))
-					mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain], ip.Host)
+				for _, mxhost := range records {
+					ips, dns_error := net.LookupIP(mxhost.Host)
+
+					if dns_error == nil {
+						for _, ip := range ips {
+							mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain], ip.String())
+						}
+					}
 				}
 			}
 		}
@@ -44,23 +48,24 @@ func findMXRecord(spfRecords map[string](string)) {
 			records, dns_error := net.LookupMX(domain)
 
 			if dns_error == nil {
-				for _, ips := range records {
-					for _, ip := range ips.Host {
-						fmt.Println(ip)
-						mxMap[domain] = append(mxMap[domain], string(ip))
+				for _, mxhost := range records {
+
+					ips, _ := net.LookupIP(mxhost.Host)
+
+					for _, ip := range ips {
+						mxMap[domain] = append(mxMap[domain], ip.String())
 					}
-					//fmt.Println(net.LookupIP(ip.Host))
-					//mxMap[domain] = append(mxMap[domain], ip.Host)
 				}
 			}
 		}
 
 	}
 
-	fmt.Println("TEST!!!!!!!!!!!!!!!")
-	for domain, ip := range mxMap {
+	for domain, ips := range mxMap {
 		fmt.Println("Domain:", domain)
-		fmt.Println("IP:", ip)
+		for _, ip := range ips {
+			fmt.Println(ip)
+		}
 	}
 
 }
@@ -96,9 +101,9 @@ func findARecord(spfRecords map[string](string)) {
 
 	}
 
-	for domain, ip := range aMap {
-		fmt.Println(domain, " ", ip)
-	}
+	//fmt.Println("---------------")
+	//fmt.Println(aMap)
+	//fmt.Println("---------------")
 
 }
 

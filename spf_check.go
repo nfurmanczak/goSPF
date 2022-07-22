@@ -110,8 +110,8 @@ func main() {
 		}
 	*/
 
-	fmt.Println("A Includes:")
-	findARecord(spfMap)
+	//fmt.Println("A Includes:")
+	//findARecord(spfMap)
 
 	fmt.Println("MX Includes:")
 	findMXRecord(spfMap)
