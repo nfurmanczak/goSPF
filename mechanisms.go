@@ -19,12 +19,10 @@ func validateIPv4Addr(input string) (returnValue bool) {
 	return
 }
 
-func findMXRecord(spfRecords map[string](string)) {
+func findMXRecord(spfRecords map[string](string)) (mxIPs []string) {
 	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
 	var MXRecordWithDomainRegex = regexp.MustCompile(`mx:\S+`)
 	var MXRecordWithoutDomainRegex = regexp.MustCompile(`mx\s`)
-
-	mxMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
 		for _, mxTag := range MXRecordWithDomainRegex.FindAllString(spfrr, -1) {
@@ -37,7 +35,7 @@ func findMXRecord(spfRecords map[string](string)) {
 
 					if dns_error == nil {
 						for _, ip := range ips {
-							mxMap[MXRecordDomain] = append(mxMap[MXRecordDomain], ip.String())
+							mxIPs = append(mxIPs, ip.String())
 						}
 					}
 				}
@@ -49,11 +47,10 @@ func findMXRecord(spfRecords map[string](string)) {
 
 			if dns_error == nil {
 				for _, mxhost := range records {
-
 					ips, _ := net.LookupIP(mxhost.Host)
 
 					for _, ip := range ips {
-						mxMap[domain] = append(mxMap[domain], ip.String())
+						mxIPs = append(mxIPs, ip.String())
 					}
 				}
 			}
@@ -61,31 +58,28 @@ func findMXRecord(spfRecords map[string](string)) {
 
 	}
 
-	for domain, ips := range mxMap {
-		fmt.Println("Domain:", domain)
-		for _, ip := range ips {
-			fmt.Println(ip)
-		}
-	}
-
+	return
 }
 
-func findARecord(spfRecords map[string](string)) {
+func findARecord(spfRecords map[string](string)) (aIPs []string) {
+
 	var ARecordWithDomainRegex = regexp.MustCompile(`a:\S+`)
 	var ARecordWithoutDomainRegex = regexp.MustCompile(`a\s`)
 
-	aMap := make(map[string]([]string))
+	//aMap := make(map[string]([]string))
 
 	for domain, spfrr := range spfRecords {
 
-		for _, x := range ARecordWithDomainRegex.FindAllString(spfrr, -1) {
-			ARecordDomain := strings.Replace(x, "a:", "", 1)
+		for _, aTag := range ARecordWithDomainRegex.FindAllString(spfrr, -1) {
+			ARecordDomain := strings.Replace(aTag, "a:", "", 1)
 			records, dns_error := net.LookupIP(ARecordDomain)
 
 			if dns_error == nil {
 				for _, ip := range records {
-					aMap[ARecordDomain] = append(aMap[ARecordDomain], ip.String())
+					aIPs = append(aIPs, ip.String())
 				}
+			} else {
+				fmt.Println("DNS error")
 			}
 		}
 
@@ -94,38 +88,68 @@ func findARecord(spfRecords map[string](string)) {
 
 			if dns_error == nil {
 				for _, ip := range records {
-					aMap[domain] = append(aMap[domain], ip.String())
+					aIPs = append(aIPs, ip.String())
 				}
+			} else {
+				fmt.Println("DNS error")
 			}
 		}
 
 	}
 
-	//fmt.Println("---------------")
-	//fmt.Println(aMap)
-	//fmt.Println("---------------")
-
-}
-
-func findIP6(spfRecord []string) (ip6list []string) {
-	// DUMMY FUNCTION
 	return
 }
 
-func findIP4(spfRecords map[string](string)) (ip4list []string) {
-
-	ip4Regex := regexp.MustCompile(`ip4:\S+`)
+func findIP6(spfRecords map[string](string)) (ip6list []string) {
+	ip6Regex := regexp.MustCompile(`ip6:\S+`)
 
 	for _, spfRecord := range spfRecords {
-		for _, x := range ip4Regex.FindAllString(spfRecord, -1) {
-			ip4list = append(ip4list, strings.Replace(x, "ip4:", "", 1))
+		for _, ipTag := range ip6Regex.FindAllString(spfRecord, -1) {
+			ip6 := strings.Replace(ipTag, "ip6:", "", 1)
+			ip6list = (append(ip6list, ip6))
 		}
 	}
 
 	return
 }
 
-func findIPv4Networks(ip4list []string) (ip4networks []string) {
+func findIP6Networks(ip6list []string) (ip6networks []string) {
+	for _, line := range ip6list {
+		_, _, err := net.ParseCIDR(line)
+		if err == nil {
+			ip6networks = append(ip6networks, line)
+		}
+	}
+
+	return
+}
+
+func findIP6Addresses(ip6list []string) (ip6addresses []string) {
+	for _, line := range ip6list {
+		ip := net.ParseIP(line)
+		if ip != nil {
+			ip6addresses = append(ip6addresses, line)
+		}
+	}
+
+	return
+}
+
+func findIP4(spfRecords map[string](string)) (ip4list []string) {
+	ip4Regex := regexp.MustCompile(`ip4:\S+`)
+
+	for _, spfRecord := range spfRecords {
+		for _, ipTag := range ip4Regex.FindAllString(spfRecord, -1) {
+
+			ip := strings.Split(ipTag, ":")
+			ip4list = append(ip4list, ip[1])
+		}
+	}
+
+	return
+}
+
+func findIP4Networks(ip4list []string) (ip4networks []string) {
 
 	for _, line := range ip4list {
 		if strings.Contains(line, "/") {
@@ -136,7 +160,7 @@ func findIPv4Networks(ip4list []string) (ip4networks []string) {
 	return
 }
 
-func findIPv4Addresses(ip4list []string) (ip4addresses []string) {
+func findIP4Addresses(ip4list []string) (ip4addresses []string) {
 
 	for _, line := range ip4list {
 		if !strings.Contains(line, "/") {

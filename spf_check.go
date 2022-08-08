@@ -1,3 +1,4 @@
+//GO version 1.19
 package main
 
 import (
@@ -7,14 +8,15 @@ import (
 	"strings"
 )
 
-//"net/netip"
-
 func main() {
 
 	var domain string
 
 	// This map contains the domain as key and SPF record as value
 	spfMap := make(map[string]string)
+
+	var UserIP4Check []string
+	var UserIP6Check []string
 
 	// Check if the user started the application with a valid value
 	if len(os.Args) > 1 {
@@ -30,6 +32,18 @@ func main() {
 				version()
 				os.Exit(0)
 			}
+
+			ipaddr := net.ParseIP(arg)
+
+			if ipaddr != nil {
+				if strings.Contains(ipaddr.String(), ":") {
+					// Found a IPv6 Address ...
+					UserIP6Check = append(UserIP6Check, ipaddr.String())
+				} else {
+					// Not a IPv6 Address
+					UserIP4Check = append(UserIP4Check, ipaddr.String())
+				}
+			}
 		}
 
 		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain
@@ -41,7 +55,7 @@ func main() {
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
-		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] [version]")
+		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] [version] [help] [monitor]")
 		fmt.Println("")
 		os.Exit(2)
 	}
@@ -92,10 +106,49 @@ func main() {
 		spfMap[domain] = spfRecord
 	}
 
-	//ipv4slice := findIP4(spfMap)
+	ipv4slice := findIP4(spfMap)
+	ip6slice := findIP6(spfMap)
 
-	//ip4addr := findIPv4Addresses(ipv4slice)
-	//ip4nets := findIPv4Networks(ipv4slice)
+	ip4addr := findIP4Addresses(ipv4slice)
+	ip4nets := findIP4Networks(ipv4slice)
+	ip6addr := findIP6Addresses(ip6slice)
+	ip6nets := findIP6Networks(ip6slice)
+
+	if len(ip4addr) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("IPv4 Addresses:")
+		fmt.Println("---------------------------")
+		for _, x := range ip4addr {
+			fmt.Println("-", x)
+		}
+	}
+
+	if len(ip4nets) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("IPv4 Networks:")
+		fmt.Println("---------------------------")
+		for _, x := range ip4nets {
+			fmt.Println("-", x)
+		}
+	}
+
+	if len(ip6addr) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("IPv6 Addresses:")
+		fmt.Println("---------------------------")
+		for _, x := range ip6addr {
+			fmt.Println("-", x)
+		}
+	}
+
+	if len(ip6nets) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("IPv6 Networks:")
+		fmt.Println("---------------------------")
+		for _, x := range ip6nets {
+			fmt.Println("-", x)
+		}
+	}
 
 	//exampleIP, _ := netip.ParseAddr("52.82.175.255")
 
@@ -109,10 +162,42 @@ func main() {
 			}
 		}
 	*/
+	aIPs := findARecord(spfMap)
+	mxIPs := findMXRecord(spfMap)
 
-	//fmt.Println("A Includes:")
-	//findARecord(spfMap)
+	if len(aIPs) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("A Includes:")
+		fmt.Println("---------------------------")
 
-	fmt.Println("MX Includes:")
-	findMXRecord(spfMap)
+		for _, ip := range aIPs {
+			fmt.Println("-", ip)
+		}
+	}
+
+	if len(mxIPs) > 0 {
+		fmt.Println("---------------------------")
+		fmt.Println("MX Includes:")
+		fmt.Println("---------------------------")
+
+		for _, ip := range mxIPs {
+			fmt.Println("-", ip)
+		}
+	}
+
+	if len(UserIP4Check) > 0 || len(UserIP6Check) > 0 {
+		fmt.Println("")
+		fmt.Println("////////////////////////////")
+		fmt.Println("IPs to check")
+		fmt.Println("////////////////////////////")
+
+		for _, x := range UserIP4Check {
+			fmt.Println("=>", x)
+		}
+
+		for _, x := range UserIP6Check {
+			fmt.Println("=>", x)
+		}
+	}
+
 }
