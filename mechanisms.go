@@ -7,18 +7,6 @@ import (
 	"strings"
 )
 
-func validateIPv4Addr(input string) (returnValue bool) {
-	var ipv4Regex = regexp.MustCompile(`^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`)
-
-	if ipv4Regex.MatchString(input) {
-		returnValue = true
-	} else {
-		returnValue = false
-	}
-
-	return
-}
-
 func findMXRecord(spfRecords map[string](string)) (mxIPs []string) {
 	// The mx mechanism can point to the original domain (mx) or to another domain (mx:example.org).
 	var MXRecordWithDomainRegex = regexp.MustCompile(`mx:\S+`)

@@ -1,4 +1,4 @@
-//GO version 1.19
+// GO version 1.19
 package main
 
 import (
@@ -37,10 +37,10 @@ func main() {
 
 			if ipaddr != nil {
 				if strings.Contains(ipaddr.String(), ":") {
-					// Found a IPv6 Address ...
+					// Found a IPv6 address ...
 					UserIP6Check = append(UserIP6Check, ipaddr.String())
 				} else {
-					// Not a IPv6 Address
+					// Not a IPv6 address
 					UserIP4Check = append(UserIP4Check, ipaddr.String())
 				}
 			}
@@ -48,7 +48,7 @@ func main() {
 
 		// The function "checkForValidDomain" checks is the var "domain" contains a valid domain
 		// This is done via a simple RegEx which expects a dot and then a TLD. This method will not detect all invalid domains.
-		if checkForValidDomain(domain) == false {
+		if !checkForValidDomain(domain) {
 			fmt.Println("Error:", domain, "is not a valid domain.")
 			os.Exit(3)
 		}
@@ -197,6 +197,38 @@ func main() {
 
 		for _, x := range UserIP6Check {
 			fmt.Println("=>", x)
+		}
+	}
+
+	//mergedIPs := append([]string{}, append(aIPs, mxIPs...) ...)
+
+	if (len(aIPs) != 0) || (len(mxIPs) != 0) {
+		mergeSlices(append(aIPs, mxIPs...), &ip4addr, &ip6addr)
+	}
+
+	if (len(ip4addr) != 0) && (len(UserIP4Check) != 0) {
+		UserIP4Check = compareIPAddr(ip4addr, UserIP4Check)
+		UserIP4Check = checkNetworks(ip4nets, UserIP4Check)
+
+		if len(UserIP4Check) != 0 {
+			fmt.Println(len(UserIP4Check), "IPv4 addresse(s) are not part of the SPF-record:")
+
+			for _, i := range UserIP4Check {
+				fmt.Println("-", i)
+			}
+		}
+	}
+
+	if (len(ip6addr) != 0) && (len(UserIP6Check) != 0) {
+		UserIP6Check = compareIPAddr(ip6addr, UserIP6Check)
+		UserIP6Check = checkNetworks(ip6nets, UserIP6Check)
+
+		if len(UserIP4Check) != 0 {
+			fmt.Println(len(UserIP4Check), "IPv6 addresse(s) are not part of the SPF-record:")
+
+			for _, i := range UserIP4Check {
+				fmt.Println("-", i)
+			}
 		}
 	}
 

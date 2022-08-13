@@ -42,7 +42,7 @@ func findAllIncludes(includes *[]string) {
 	tmp_includes = *includes
 
 	// Infinity loop which will only be exit when no more includes are found.
-	for true {
+	for {
 
 		// Loop all elements in tmp_includes ...
 		for _, x := range tmp_includes {
@@ -98,9 +98,12 @@ func findAllIncludes(includes *[]string) {
 			tmp_includes = nil
 
 			// Copy all new found include domains into the
-			for _, x := range trans_includes {
-				tmp_includes = append(tmp_includes, x)
-			}
+			//for _, x := range trans_includes {
+			//	tmp_includes = append(tmp_includes, x)
+			//}
+
+			tmp_includes = append(tmp_includes, trans_includes...)
+
 			trans_includes = nil
 		} else {
 			// No more include domains found, we need to exit this for loop
@@ -127,7 +130,7 @@ func findAllIncludesWithMaps(includes *[]string) {
 	tmp_includes = *includes
 
 	// Infinity loop which will only be exit when no more includes are found.
-	for true {
+	for {
 
 		// Loop all elements in tmp_includes ...
 		for _, x := range tmp_includes {
@@ -182,9 +185,11 @@ func findAllIncludesWithMaps(includes *[]string) {
 			tmp_includes = nil
 
 			// Copy all new found include domains into the
-			for _, x := range trans_includes {
-				tmp_includes = append(tmp_includes, x)
-			}
+			//for _, x := range trans_includes {
+			//	tmp_includes = append(tmp_includes, x)
+			//}
+
+			tmp_includes = append(tmp_includes, trans_includes...)
 			trans_includes = nil
 		} else {
 			// No more include domains found, we need to exit this for loop
