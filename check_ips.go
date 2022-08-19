@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/netip"
 )
 
@@ -28,6 +29,11 @@ func checkNetworks(ip4nets []string, UserIPs2Check []string) []string {
 			testIP, _ := netip.ParseAddr(checkIP)
 
 			if network.Contains(testIP) {
+				fmt.Println(testIP, "is part or", network)
+				fmt.Println("index:", index)
+				for a, b := range UserIPs2Check {
+					fmt.Println("----->", a, b)
+				}
 				UserIPs2Check = append(UserIPs2Check[:index], UserIPs2Check[index+1:]...)
 			}
 		}

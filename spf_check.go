@@ -191,10 +191,12 @@ func main() {
 		fmt.Println("IPs to check")
 		fmt.Println("////////////////////////////")
 
+		fmt.Println("IPv4:")
 		for _, x := range UserIP4Check {
 			fmt.Println("=>", x)
 		}
 
+		fmt.Println("IPv6:")
 		for _, x := range UserIP6Check {
 			fmt.Println("=>", x)
 		}
@@ -206,9 +208,12 @@ func main() {
 		mergeSlices(append(aIPs, mxIPs...), &ip4addr, &ip6addr)
 	}
 
-	if (len(ip4addr) != 0) && (len(UserIP4Check) != 0) {
+	if len(UserIP4Check) != 0 {
 		UserIP4Check = compareIPAddr(ip4addr, UserIP4Check)
-		UserIP4Check = checkNetworks(ip4nets, UserIP4Check)
+
+		if len(ip4nets) != 0 {
+			UserIP4Check = checkNetworks(ip4nets, UserIP4Check)
+		}
 
 		if len(UserIP4Check) != 0 {
 			fmt.Println(len(UserIP4Check), "IPv4 addresse(s) are not part of the SPF-record:")
@@ -216,19 +221,26 @@ func main() {
 			for _, i := range UserIP4Check {
 				fmt.Println("-", i)
 			}
+		} else {
+			fmt.Println("All IPv4 addr are coverd with the SPF record")
 		}
 	}
 
-	if (len(ip6addr) != 0) && (len(UserIP6Check) != 0) {
+	if len(UserIP6Check) != 0 {
 		UserIP6Check = compareIPAddr(ip6addr, UserIP6Check)
-		UserIP6Check = checkNetworks(ip6nets, UserIP6Check)
 
-		if len(UserIP4Check) != 0 {
-			fmt.Println(len(UserIP4Check), "IPv6 addresse(s) are not part of the SPF-record:")
+		if len(ip6nets) != 0 {
+			UserIP6Check = checkNetworks(ip6nets, UserIP6Check)
+		}
 
-			for _, i := range UserIP4Check {
+		if len(UserIP6Check) != 0 {
+			fmt.Println(len(UserIP6Check), "IPv6 addresse(s) are not part of the SPF record:")
+
+			for _, i := range UserIP6Check {
 				fmt.Println("-", i)
 			}
+		} else {
+			fmt.Println("All IPv6 addr are covers with the SPF record")
 		}
 	}
 
