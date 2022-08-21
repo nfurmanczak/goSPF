@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/netip"
 )
 
@@ -10,14 +9,20 @@ func compareIPAddr(mergesIPS []string, UserIPs2Check []string) []string {
 	for _, IP := range mergesIPS {
 		for index, checkIP := range UserIPs2Check {
 			if IP == checkIP {
-				//fmt.Println("IP match!!!!!")
-				//cIP = append(s[:index], s[index+1:]
-				UserIPs2Check = append(UserIPs2Check[:index], UserIPs2Check[index+1:]...)
+				UserIPs2Check[index] = "null"
 			}
 		}
 	}
 
-	return UserIPs2Check
+	notCovertIP := []string{}
+
+	for _, IP := range UserIPs2Check {
+		if IP != "null" {
+			notCovertIP = append(notCovertIP, IP)
+		}
+	}
+
+	return notCovertIP
 }
 
 func checkNetworks(ip4nets []string, UserIPs2Check []string) []string {
@@ -29,17 +34,20 @@ func checkNetworks(ip4nets []string, UserIPs2Check []string) []string {
 			testIP, _ := netip.ParseAddr(checkIP)
 
 			if network.Contains(testIP) {
-				fmt.Println(testIP, "is part or", network)
-				fmt.Println("index:", index)
-				for a, b := range UserIPs2Check {
-					fmt.Println("----->", a, b)
-				}
-				UserIPs2Check = append(UserIPs2Check[:index], UserIPs2Check[index+1:]...)
+				UserIPs2Check[index] = "null"
 			}
 		}
 	}
 
-	return UserIPs2Check
+	notCovertIP := []string{}
+
+	for _, IP := range UserIPs2Check {
+		if IP != "null" {
+			notCovertIP = append(notCovertIP, IP)
+		}
+	}
+
+	return notCovertIP
 }
 
 //exampleIP, _ := netip.ParseAddr("52.82.175.255")

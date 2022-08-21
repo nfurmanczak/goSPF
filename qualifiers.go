@@ -12,20 +12,20 @@ func findAllQualifier(spfRecord string) {
 
 	if all != "" {
 		if all == "-all" {
-			fmt.Println("Hardfail found (-all)")
+			fmt.Println("Hardfail found (-all).")
 		} else if all == "~all" {
-			fmt.Println("Softfail found (~all)")
+			fmt.Println("Softfail found (~all).")
 		} else if all == "?all" {
-			fmt.Println("Neutral found (?all)")
+			fmt.Println("Neutral found (?all). This is not recommended. Try to use -all.")
 		} else if all == "+all" {
-			fmt.Println("Error: +all is invalid.")
+			fmt.Println("Error: +all is invalid. Please check SPF-Record!")
 			os.Exit(2)
 		} else {
-			fmt.Println("Error: all found but is invalid.")
+			fmt.Println("Error: all found but is invalid. Please check SPF-Record!")
 			os.Exit(2)
 		}
 	} else {
-		fmt.Println("Error: Invalid SPF RR. No all mechanism found.")
+		fmt.Println("Error: Invalid SPF-Record. No all mechanism found. Please check SPF-Record!")
 		os.Exit(2)
 	}
 }

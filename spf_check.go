@@ -10,6 +10,7 @@ import (
 
 func main() {
 
+	var debug_mode bool = false
 	var domain string
 
 	// This map contains the domain as key and SPF record as value
@@ -31,6 +32,10 @@ func main() {
 			if strings.ToLower(arg) == "version" {
 				version()
 				os.Exit(0)
+			}
+
+			if strings.ToLower(arg) == "debug" {
+				debug_mode = true
 			}
 
 			ipaddr := net.ParseIP(arg)
@@ -60,6 +65,8 @@ func main() {
 		os.Exit(2)
 	}
 
+	//fmt.Println("Debug?", debug)
+
 	// Get TXT records from the domain via DNS lookup ...
 	txtrecords, dns_error := net.LookupTXT(domain)
 
@@ -78,7 +85,7 @@ func main() {
 	// A SPF record can contain a redirect which points to an SPF record from a different domain
 	spfRecord = findRedirect(spfRecord)
 
-	fmt.Println("SPF after redirect:", spfRecord)
+	fmt.Println("SPF-Record:", spfRecord)
 
 	findAllQualifier(spfRecord)
 
@@ -113,43 +120,68 @@ func main() {
 	ip4nets := findIP4Networks(ipv4slice)
 	ip6addr := findIP6Addresses(ip6slice)
 	ip6nets := findIP6Networks(ip6slice)
+	aIPs := findARecord(spfMap)
+	mxIPs := findMXRecord(spfMap)
 
-	if len(ip4addr) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("IPv4 Addresses:")
-		fmt.Println("---------------------------")
-		for _, x := range ip4addr {
-			fmt.Println("-", x)
+	if debug_mode == true {
+
+		if len(ip4addr) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("IPv4 Addresses:")
+			fmt.Println("---------------------------")
+			for _, x := range ip4addr {
+				fmt.Println("-", x)
+			}
 		}
-	}
 
-	if len(ip4nets) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("IPv4 Networks:")
-		fmt.Println("---------------------------")
-		for _, x := range ip4nets {
-			fmt.Println("-", x)
+		if len(ip4nets) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("IPv4 Networks:")
+			fmt.Println("---------------------------")
+			for _, x := range ip4nets {
+				fmt.Println("-", x)
+			}
 		}
-	}
 
-	if len(ip6addr) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("IPv6 Addresses:")
-		fmt.Println("---------------------------")
-		for _, x := range ip6addr {
-			fmt.Println("-", x)
+		if len(ip6addr) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("IPv6 Addresses:")
+			fmt.Println("---------------------------")
+			for _, x := range ip6addr {
+				fmt.Println("-", x)
+			}
 		}
-	}
 
-	if len(ip6nets) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("IPv6 Networks:")
-		fmt.Println("---------------------------")
-		for _, x := range ip6nets {
-			fmt.Println("-", x)
+		if len(ip6nets) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("IPv6 Networks:")
+			fmt.Println("---------------------------")
+			for _, x := range ip6nets {
+				fmt.Println("-", x)
+			}
 		}
-	}
 
+		if len(aIPs) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("A Includes:")
+			fmt.Println("---------------------------")
+
+			for _, ip := range aIPs {
+				fmt.Println("-", ip)
+			}
+		}
+
+		if len(mxIPs) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Println("MX Includes:")
+			fmt.Println("---------------------------")
+
+			for _, ip := range mxIPs {
+				fmt.Println("-", ip)
+			}
+		}
+
+	}
 	//exampleIP, _ := netip.ParseAddr("52.82.175.255")
 
 	/*
@@ -162,28 +194,6 @@ func main() {
 			}
 		}
 	*/
-	aIPs := findARecord(spfMap)
-	mxIPs := findMXRecord(spfMap)
-
-	if len(aIPs) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("A Includes:")
-		fmt.Println("---------------------------")
-
-		for _, ip := range aIPs {
-			fmt.Println("-", ip)
-		}
-	}
-
-	if len(mxIPs) > 0 {
-		fmt.Println("---------------------------")
-		fmt.Println("MX Includes:")
-		fmt.Println("---------------------------")
-
-		for _, ip := range mxIPs {
-			fmt.Println("-", ip)
-		}
-	}
 
 	if len(UserIP4Check) > 0 || len(UserIP6Check) > 0 {
 		fmt.Println("")
