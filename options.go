@@ -23,5 +23,38 @@ func version() {
 
 	fmt.Println(`Version 0.1
 goSPF - Check and validate SPF record in DNS zones 
-Autor nikolai.furmanczak@gmail.com`)
+Autor nikolai@furmanczak.de`)
+}
+
+func verbosePrintIPs(domain string, ip4addr []string, ip4nets []string, ip6addr []string, ip6nets []string) {
+	fmt.Println("The SPF-record for", domain, "contains the following IP addresses and networks:")
+
+	if len(ip4addr) != 0 {
+		fmt.Println("IPv4 addresses:")
+		for _, ip := range ip4addr {
+			fmt.Println("-", ip)
+		}
+	}
+
+	if len(ip4nets) != 0 {
+		fmt.Println("IPv4 networks:")
+		for _, network := range ip4nets {
+			fmt.Println("-", network)
+		}
+	}
+
+	if len(ip6addr) != 0 {
+		fmt.Println("IPv6 addresses:")
+		for _, ip := range ip6addr {
+			fmt.Println("-", ip)
+		}
+	}
+
+	if len(ip6nets) != 0 {
+		fmt.Println("IPv6 networks:")
+		for _, network := range ip6nets {
+			fmt.Println("-", network)
+		}
+	}
+
 }

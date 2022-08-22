@@ -1,4 +1,4 @@
-// GO version 1.19
+// This software was written and tested with GO version 1.18 and 1.19.
 package main
 
 import (
@@ -9,20 +9,24 @@ import (
 )
 
 func main() {
-
-	var debug_mode bool = false
-	var domain string
-
 	// This map contains the domain as key and SPF record as value
 	spfMap := make(map[string]string)
 
+	// These two slices contain IPv4 and IPv6 addresses that the user specified when invoking the program.
+	// It is checked whether these IP addresses are part of the SPF record. The user is not forced to specify IP addresses.
+	// These two slices can therefore also be empty.
 	var UserIP4Check []string
 	var UserIP6Check []string
 
-	// Check if the user started the application with a valid value
+	// Var to enable or disable the verbose mode
+	var verbode_mode bool = false
+	var domain string = ""
+
+	// Check if the user started the application with a valid values
 	if len(os.Args) > 1 {
 		domain = strings.ToLower(os.Args[1])
 
+		// Check if other values (e.g. IP addresses, debug mode, ...) are present
 		for _, arg := range os.Args {
 			if strings.ToLower(arg) == "help" {
 				help()
@@ -34,18 +38,21 @@ func main() {
 				os.Exit(0)
 			}
 
-			if strings.ToLower(arg) == "debug" {
-				debug_mode = true
+			if strings.ToLower(arg) == "verbose" {
+				verbode_mode = true
 			}
 
+			// Try to parse the string from the args to a IP address
 			ipaddr := net.ParseIP(arg)
 
+			//... check if this IP address is a IPv4 or IPv6 address.
+			// We will add this addresses to the slice
 			if ipaddr != nil {
 				if strings.Contains(ipaddr.String(), ":") {
 					// Found a IPv6 address ...
 					UserIP6Check = append(UserIP6Check, ipaddr.String())
 				} else {
-					// Not a IPv6 address
+					// Found a IPv4 address
 					UserIP4Check = append(UserIP4Check, ipaddr.String())
 				}
 			}
@@ -57,23 +64,22 @@ func main() {
 			fmt.Println("Error:", domain, "is not a valid domain.")
 			os.Exit(3)
 		}
+
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
-		fmt.Println("Usage: ./spf_check example-domain.org [1.2.3.4] [2001:db8:1::ab9:C0A8:102] [debug] [version] [help] [monitor]")
+		fmt.Println("Usage: ./spf_check example.org [1.2.3.4] [2001:12::1b12:0:0:1a1] [verbose] [version] [help] [monitor]")
 		fmt.Println("")
-		os.Exit(2)
+		os.Exit(3)
 	}
-
-	//fmt.Println("Debug?", debug)
 
 	// Get TXT records from the domain via DNS lookup ...
 	txtrecords, dns_error := net.LookupTXT(domain)
 
-	// ... exit application with exit code 3 when the DNS lookup is not possible (e.g. timeout, .. )
+	// ... exit application with exit code 2 (critical) when the DNS lookup is not possible (e.g. timeout, ... )
 	if dns_error != nil {
-		fmt.Println("Error: No TXT DNS-Record found")
-		os.Exit(3)
+		fmt.Println("Error: No TXT DNS-Record found for", domain)
+		os.Exit(2)
 	}
 
 	// The slice txtrecords can contain multiple txt records. The function will search for SPF records and return the
@@ -123,100 +129,17 @@ func main() {
 	aIPs := findARecord(spfMap)
 	mxIPs := findMXRecord(spfMap)
 
-	if debug_mode == true {
-
-		if len(ip4addr) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("IPv4 Addresses:")
-			fmt.Println("---------------------------")
-			for _, x := range ip4addr {
-				fmt.Println("-", x)
-			}
-		}
-
-		if len(ip4nets) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("IPv4 Networks:")
-			fmt.Println("---------------------------")
-			for _, x := range ip4nets {
-				fmt.Println("-", x)
-			}
-		}
-
-		if len(ip6addr) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("IPv6 Addresses:")
-			fmt.Println("---------------------------")
-			for _, x := range ip6addr {
-				fmt.Println("-", x)
-			}
-		}
-
-		if len(ip6nets) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("IPv6 Networks:")
-			fmt.Println("---------------------------")
-			for _, x := range ip6nets {
-				fmt.Println("-", x)
-			}
-		}
-
-		if len(aIPs) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("A Includes:")
-			fmt.Println("---------------------------")
-
-			for _, ip := range aIPs {
-				fmt.Println("-", ip)
-			}
-		}
-
-		if len(mxIPs) > 0 {
-			fmt.Println("---------------------------")
-			fmt.Println("MX Includes:")
-			fmt.Println("---------------------------")
-
-			for _, ip := range mxIPs {
-				fmt.Println("-", ip)
-			}
-		}
-
-	}
-	//exampleIP, _ := netip.ParseAddr("52.82.175.255")
-
-	/*
-		fmt.Println("Check if IP is in CIDR Network")
-		for _, x := range ip4nets {
-			network, _ := netip.ParsePrefix(x)
-
-			if network.Contains(exampleIP) {
-				fmt.Println(exampleIP, "is part from the network", x)
-			}
-		}
-	*/
-
-	if len(UserIP4Check) > 0 || len(UserIP6Check) > 0 {
-		fmt.Println("")
-		fmt.Println("////////////////////////////")
-		fmt.Println("IPs to check")
-		fmt.Println("////////////////////////////")
-
-		fmt.Println("IPv4:")
-		for _, x := range UserIP4Check {
-			fmt.Println("=>", x)
-		}
-
-		fmt.Println("IPv6:")
-		for _, x := range UserIP6Check {
-			fmt.Println("=>", x)
-		}
-	}
-
 	//mergedIPs := append([]string{}, append(aIPs, mxIPs...) ...)
 
 	if (len(aIPs) != 0) || (len(mxIPs) != 0) {
 		mergeSlices(append(aIPs, mxIPs...), &ip4addr, &ip6addr)
 	}
+
+	if verbode_mode == true {
+		verbosePrintIPs(domain, ip4addr, ip4nets, ip6addr, ip6nets)
+	}
+
+	var exitbool bool = true
 
 	if len(UserIP4Check) != 0 {
 		UserIP4Check = compareIPAddr(ip4addr, UserIP4Check)
@@ -226,13 +149,13 @@ func main() {
 		}
 
 		if len(UserIP4Check) != 0 {
-			fmt.Println(len(UserIP4Check), "IPv4 addresse(s) are not part of the SPF-record:")
-
+			fmt.Printf("%d IPv4 addresse(s) are not part of the SPF-record:\n", len(UserIP4Check))
+			exitbool = false
 			for _, i := range UserIP4Check {
 				fmt.Println("-", i)
 			}
 		} else {
-			fmt.Println("All IPv4 addr are coverd with the SPF record")
+			fmt.Println("All IPv4 addresses are coverd with the SPF record.")
 		}
 	}
 
@@ -244,13 +167,23 @@ func main() {
 		}
 
 		if len(UserIP6Check) != 0 {
-			fmt.Println(len(UserIP6Check), "IPv6 addresse(s) are not part of the SPF record:")
-
+			fmt.Printf("%d IPv6 addresse(s) are not part of the SPF record\n:", len(UserIP4Check))
+			exitbool = false
 			for _, i := range UserIP6Check {
 				fmt.Println("-", i)
 			}
+
 		} else {
-			fmt.Println("All IPv6 addr are covers with the SPF record")
+			fmt.Println("All IPv6 addresses are coverd by the SPF record.")
+		}
+	}
+
+	if len(UserIP4Check) != 0 || len(UserIP6Check) != 0 {
+
+		if exitbool {
+			os.Exit(0)
+		} else {
+			os.Exit(2)
 		}
 	}
 
