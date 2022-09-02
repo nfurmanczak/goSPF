@@ -49,16 +49,3 @@ func checkNetworks(ip4nets []string, UserIPs2Check []string) []string {
 
 	return notCovertIP
 }
-
-//exampleIP, _ := netip.ParseAddr("52.82.175.255")
-
-/*
-	fmt.Println("Check if IP is in CIDR Network")
-	for _, x := range ip4nets {
-		network, _ := netip.ParsePrefix(x)
-
-		if network.Contains(exampleIP) {
-			fmt.Println(exampleIP, "is part from the network", x)
-		}
-	}
-*/

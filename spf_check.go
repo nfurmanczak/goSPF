@@ -68,8 +68,7 @@ func main() {
 	} else {
 		// Exit the application with exit code 2 when a domain as transfer parameter is missing
 		fmt.Println("Error: Domain missing.")
-		fmt.Println("Usage: ./spf_check example.org [1.2.3.4] [2001:12::1b12:0:0:1a1] [verbose] [version] [help] [monitor]")
-		fmt.Println("")
+		fmt.Println("Usage: ./spf_check example.org [1.2.3.4] [2001:12::1b12:0:0:1a1] [verbose] [version] [help]")
 		os.Exit(3)
 	}
 
@@ -93,7 +92,7 @@ func main() {
 
 	fmt.Println("SPF-Record:", spfRecord)
 
-	findAllQualifier(spfRecord)
+	findAllQualifier(spfRecord, verbode_mode)
 
 	var includes = []string{}
 	includes = findIncludeInSPFRecord(spfRecord)
@@ -139,7 +138,7 @@ func main() {
 		verbosePrintIPs(domain, ip4addr, ip4nets, ip6addr, ip6nets)
 	}
 
-	var exitbool bool = true
+	var exit_status bool = true
 
 	if len(UserIP4Check) != 0 {
 		UserIP4Check = compareIPAddr(ip4addr, UserIP4Check)
@@ -150,12 +149,12 @@ func main() {
 
 		if len(UserIP4Check) != 0 {
 			fmt.Printf("%d IPv4 addresse(s) are not part of the SPF-record:\n", len(UserIP4Check))
-			exitbool = false
+			exit_status = false
 			for _, i := range UserIP4Check {
 				fmt.Println("-", i)
 			}
 		} else {
-			fmt.Println("All IPv4 addresses are coverd with the SPF record.")
+			fmt.Println("All IPv4 addresses are covered by the SPF record.")
 		}
 	}
 
@@ -168,19 +167,18 @@ func main() {
 
 		if len(UserIP6Check) != 0 {
 			fmt.Printf("%d IPv6 addresse(s) are not part of the SPF record\n:", len(UserIP4Check))
-			exitbool = false
+			exit_status = false
 			for _, i := range UserIP6Check {
 				fmt.Println("-", i)
 			}
 
 		} else {
-			fmt.Println("All IPv6 addresses are coverd by the SPF record.")
+			fmt.Println("All IPv6 addresses are covered by the SPF record.")
 		}
 	}
 
 	if len(UserIP4Check) != 0 || len(UserIP6Check) != 0 {
-
-		if exitbool {
+		if exit_status {
 			os.Exit(0)
 		} else {
 			os.Exit(2)

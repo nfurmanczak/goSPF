@@ -42,10 +42,10 @@ func findSPFRecord(txtrecords []string) (foundSPFrecord string) {
 
 	if spfCounter > 1 {
 		fmt.Println("Error: More then one SPF record found. SPF setup is faulty!")
-		os.Exit(3)
+		os.Exit(2)
 	} else if spfCounter == 0 {
-		fmt.Println("Error: No SPF record found.")
-		os.Exit(3)
+		fmt.Println("Error: No SPF record found!")
+		os.Exit(2)
 	}
 	
 	return foundSPFrecord	

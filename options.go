@@ -5,24 +5,39 @@ import (
 )
 
 func help() {
-	fmt.Println(`The tool goSPF can be used to analyse SPF record or for the monitoring of a SPF record. 
-The program must be started with at least one domain as transfer parameter. The tool will 
-search for a SPF record and will display all ressaurces. 
-	
+	fmt.Println(`This tool can be used to analyse or monitor SPF record.  
+The program must be started with at least the domain as transfer parameter. It will 
+automatically search for an SPF record. 
+
 Example: 
-./gospf example.org
+./goSPF example.org
+
+You can get more information about the SPF record with the [verbose] mode. This includes 
+information about the all mechanism and all IP addresses and networks which are covered by 
+the SPF record. Depending on whether an SPF record was found, the program exits with 
+a different exit code. If no SPF record or no valid SPF record is found, the program 
+terminates with the exit code 2. With a valid SPF record the program terminates with 
+the exit code 0. 
+
+Example:
+./goSPF example.org verbose 
+
 
 The tool can also check if a IPv4 or IPv6 address is part of the SPF record. It can handle 
-one single IP or a list of multiple IPs.  
-	
+one single IP or a list of multiple IPv4 or IPv6 addresses. The order of the addresses 
+does not matter. 
+
 Example: 
-./gospf exmaple.org 127.0.0.1 192.168.2.1 2001:db8:1::ab9:C0A8:102`)
+./goSPF exmaple.org 127.0.0.1 192.168.2.1 2001:db8:1::ab9:C0A8:102
+
+If all specified IP addresses are part of the SPF record, the program exits with 
+exit code 0, otherwise with exit code 2. `)
 }
 
 func version() {
 
 	fmt.Println(`Version 0.1
-goSPF - Check and validate SPF record in DNS zones 
+goSPF - Check and validate SPF record in DNS zones. 
 Autor nikolai@furmanczak.de`)
 }
 

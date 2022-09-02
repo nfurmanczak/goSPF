@@ -81,7 +81,6 @@ func findAllIncludes(includes *[]string) {
 				for _, x := range new_includes {
 					*includes = append(*includes, x)
 					trans_includes = append(trans_includes, x)
-
 				}
 
 				new_includes = nil
