@@ -1,4 +1,4 @@
-// This software was written and tested with GO version 1.18 and 1.19.
+// This software was written and tested with golang version 1.18 and 1.19.
 package main
 
 import (
