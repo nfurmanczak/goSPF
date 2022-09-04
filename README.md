@@ -8,7 +8,7 @@ More information about SPF (Sender Policy Framework):
 
 ## Compile source code 
 
-I would recommend to install the golang package on your system. The golang package is available for Linux, Windows and macOS (Intel and ARM). You can find more information about the installation or packages for Windows on the golang webpage: (https://go.dev/doc/install)[https://go.dev/doc/install]
+I would recommend to install the golang package on your system. The golang package is available for Linux, Windows and macOS (Intel and ARM). You can find more information about the installation or packages for Windows on the golang webpage: [https://go.dev/doc/install](https://go.dev/doc/install)
 
 Don't forget to add the dir /usr/local/go/bin to the PATH var on your macOS or Linux system: 
 
