@@ -5,8 +5,9 @@ More information about SPF (Sender Policy Framework):
 - [https://en.wikipedia.org/wiki/Sender_Policy_Framework](https://en.wikipedia.org/wiki/Sender_Policy_Framework)
 - [https://datatracker.ietf.org/doc/rfc7208/](https://datatracker.ietf.org/doc/rfc7208/)
 
+<br>
 
-## Compile source code 
+# Compile source code 
 
 I would recommend to install the golang package on your system. The golang package is available for Linux, Windows and macOS (Intel and ARM). You can find more information about the installation or packages for Windows on the golang webpage: [https://go.dev/doc/install](https://go.dev/doc/install)
 
@@ -33,8 +34,11 @@ The command go build will create the executable file goSPF. You can check the ve
 
 	./goSPF version 
 
+You can also download a executable file from the github release site: [https://github.com/nfurmanczak/goSPF/releases](https://github.com/nfurmanczak/goSPF/releases)
 
-## Usage
+<br>
+
+# Usage
 
 goSPF needs to be always started with a domain. The tool will search for all TXT record in the DNS zone and checks which TXT record is a valid SPF record. 
 
