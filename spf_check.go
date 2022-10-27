@@ -19,7 +19,7 @@ func main() {
 	var UserIP6Check []string
 
 	// Var to enable or disable the verbose mode
-	var verbode_mode bool = false
+	var verbose_mode bool = false
 	var domain string = ""
 
 	// Check if the user started the application with a valid values
@@ -39,7 +39,7 @@ func main() {
 			}
 
 			if strings.ToLower(arg) == "verbose" {
-				verbode_mode = true
+				verbose_mode = true
 			}
 
 			// Try to parse the string from the args to a IP address
@@ -92,7 +92,7 @@ func main() {
 
 	fmt.Println("SPF-Record:", spfRecord)
 
-	findAllQualifier(spfRecord, verbode_mode)
+	findAllQualifier(spfRecord, verbose_mode)
 
 	var includes = []string{}
 	includes = findIncludeInSPFRecord(spfRecord)
@@ -118,6 +118,12 @@ func main() {
 		spfMap[domain] = spfRecord
 	}
 
+	if verbose_mode == true {
+		for y, x := range spfMap {
+			fmt.Println(y, x)
+		}
+	}
+
 	ipv4slice := findIP4(spfMap)
 	ip6slice := findIP6(spfMap)
 
@@ -134,7 +140,7 @@ func main() {
 		mergeSlices(append(aIPs, mxIPs...), &ip4addr, &ip6addr)
 	}
 
-	if verbode_mode == true {
+	if verbose_mode == true {
 		verbosePrintIPs(domain, ip4addr, ip4nets, ip6addr, ip6nets)
 	}
 
